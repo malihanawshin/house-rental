@@ -1,0 +1,17 @@
+{
+  "7453": {
+    "id": "7453",
+    "name": "2B N1 A - 29 Shoreditch Heights",
+    "location": "London, UK",
+    "images": [
+      "https://picsum.photos/800/400?random=1",
+      "https://picsum.photos/800/400?random=2",
+      "https://picsum.photos/800/400?random=3"
+    ],
+    "description": "A modern 2-bedroom apartment in Shoreditch, walking distance to Liverpool Street station. Perfect for families or business stays.",
+    "amenities": ["WiFi", "Kitchen", "Washing Machine", "Balcony", "24/7 Check-in"],
+    "bedrooms": 2,
+    "bathrooms": 1,
+    "guests": 4
+  }
+}
