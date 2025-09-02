@@ -42,11 +42,11 @@ export default function DashboardPage() {
     let temp = [...reviews];
     if (categoryFilter) {
       temp = temp.filter((r) =>
-        r.reviewCategory?.some((c) => c.category === categoryFilter)
+        r.categories?.some((c) => c.category === categoryFilter)
       );
     }
     if (dateFilter) {
-      temp = temp.filter((r) => r.submittedAt?.startsWith(dateFilter));
+      temp = temp.filter((r) => r.date?.startsWith(dateFilter));
     }
     setFilteredReviews(temp);
   }, [categoryFilter, dateFilter, reviews]);
@@ -72,17 +72,9 @@ export default function DashboardPage() {
       field: "rating",
       headerName: "Rating",
       flex: 1,
-      valueGetter: (params) => {
-        const categories = params.row?.reviewCategory;
-        if (!categories || categories.length === 0) return "N/A";
-        const avg = Math.round(
-          categories.reduce((sum, c) => sum + (c.rating || 0), 0) / categories.length
-        );
-        return avg;
-      },
     },
-    { field: "publicReview", headerName: "Review", flex: 2 },
-    { field: "submittedAt", headerName: "Date", flex: 1 },
+    { field: "review", headerName: "Review", flex: 2 },
+    { field: "date", headerName: "Date", flex: 1 },
     {
       field: "approved",
       headerName: "Approved",
@@ -106,42 +98,41 @@ export default function DashboardPage() {
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 2 }}>
-      <Grid item xs={12} sm={6} md={3}>
-        <FormControl fullWidth sx={{ minWidth: 120 }}>
-          <InputLabel id="category-label">Category</InputLabel>
-          <Select
-            labelId="category-label"
-            value={categoryFilter}
-            label="Category"
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            sx={{
-              '& .MuiSelect-select': {
-                paddingRight: '24px', // Ensure enough space for the dropdown icon
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-              },
-            }}
-          >
-            <MenuItem value="">All</MenuItem>
-            <MenuItem value="cleanliness">Cleanliness</MenuItem>
-            <MenuItem value="communication">Communication</MenuItem>
-            <MenuItem value="respect_house_rules">House Rules</MenuItem>
-          </Select>
-        </FormControl>
+        <Grid item xs={12} sm={6} md={3}>
+          <FormControl fullWidth sx={{ minWidth: 120 }}>
+            <InputLabel id="category-label">Category</InputLabel>
+            <Select
+              labelId="category-label"
+              value={categoryFilter}
+              label="Category"
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              sx={{
+                "& .MuiSelect-select": {
+                  paddingRight: "24px", // Ensure enough space for the dropdown icon
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                },
+              }}
+            >
+              <MenuItem value="">All</MenuItem>
+              <MenuItem value="cleanliness">Cleanliness</MenuItem>
+              <MenuItem value="communication">Communication</MenuItem>
+              <MenuItem value="respect_house_rules">House Rules</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6} md={3}>
+          <TextField
+            label="Date (YYYY-MM-DD)"
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            fullWidth
+          />
+        </Grid>
       </Grid>
-      <Grid item xs={12} sm={6} md={3}>
-        <TextField
-          label="Date (YYYY-MM-DD)"
-          type="date"
-          value={dateFilter}
-          onChange={(e) => setDateFilter(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-          fullWidth
-        />
-      </Grid>
-    </Grid>
-
 
       <DataGrid
         rows={filteredReviews}

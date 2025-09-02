@@ -9,7 +9,7 @@ function App() {
         <Link to="/dashboard" style={{ marginRight: "1rem" }}>
           Dashboard
         </Link>
-        <Link to="/property">Property Page</Link>
+        {/* <Link to="/property">Property Page</Link> */}
       </nav>
 
       <Routes>

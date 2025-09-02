@@ -96,7 +96,7 @@ app.get("/api/reviews/hostaway", async (req, res) => {
 
     res.json(reviews);
   } catch (err) {
-    console.error("Failed to fetch Hostaway reviews, using mock JSON:", err.message);
+    //console.error("Failed to fetch Hostaway reviews, using mock JSON:", err.message);
 
     // fallback to local JSON if sandbox fails
     const data = JSON.parse(fs.readFileSync(DATA_FILE));
