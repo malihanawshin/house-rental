@@ -1,9 +1,9 @@
-// server.js
 const express = require("express");
 const cors = require("cors");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
+require("dotenv").config(); // Load .env variables
 
 const app = express();
 app.use(cors());
@@ -12,9 +12,10 @@ app.use(express.json());
 // Path to mock reviews
 const DATA_FILE = path.join(__dirname, "data", "hostaway.mock.json");
 
-// Optional Hostaway sandbox API
-const ACCOUNT_ID = process.env.HOSTAWAY_ACCOUNT_ID || "61148";
-const API_KEY = process.env.HOSTAWAY_API_KEY || "f94377ebbbb479490bb3ec364649168dc443dda2e4830facaf5de2e74ccc9152";
+// Hostaway sandbox credentials from .env
+const ACCOUNT_ID = process.env.HOSTAWAY_ACCOUNT_ID;
+const API_KEY = process.env.HOSTAWAY_API_KEY;
+
 // Load reviews from JSON
 function loadReviews() {
   const data = JSON.parse(fs.readFileSync(DATA_FILE));
@@ -96,9 +97,9 @@ app.get("/api/reviews/hostaway", async (req, res) => {
 
     res.json(reviews);
   } catch (err) {
-    //console.error("Failed to fetch Hostaway reviews, using mock JSON:", err.message);
+    console.error("Failed to fetch Hostaway reviews, using mock JSON:", err.message);
 
-    // fallback to local JSON if sandbox fails
+    // Fallback to local JSON if sandbox fails
     const data = JSON.parse(fs.readFileSync(DATA_FILE));
     const reviews = data.result.map((r) => ({
       id: r.id,
@@ -154,10 +155,10 @@ app.get("/api/properties/:id", (req, res) => {
     description:
       "A modern 2-bedroom apartment in Shoreditch, walking distance to Liverpool Street station. Perfect for families or business stays.",
     images: [
-      "http://localhost:3000/images/living.jpg",
-      "http://localhost:3000/images/bedroom.jpg",
-      "http://localhost:3000/images/kitchen.jpg",
-      "http://localhost:3000/images/bathroom.jpg",
+      "http://localhost:3000/images/living.jpeg",
+      "http://localhost:3000/images/bedroom.jpeg",
+      "http://localhost:3000/images/kitchen.jpeg",
+      "http://localhost:3000/images/bathroom.jpeg",
     ],
     amenities: ["WiFi", "Kitchen", "Washing Machine", "Balcony", "24/7 Check-in"],
     bedrooms: 2,

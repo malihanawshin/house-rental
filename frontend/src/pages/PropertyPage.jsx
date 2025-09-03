@@ -26,6 +26,10 @@ import {
   AccessTime,
 } from "@mui/icons-material";
 import axios from "axios";
+import { GoogleMap, useJsApiLoader, Marker } from "@react-google-maps/api";
+
+// Define libraries as a constant outside the component
+const GOOGLE_MAPS_LIBRARIES = ["places"];
 
 export default function PropertyPage() {
   const { id } = useParams();
@@ -34,6 +38,12 @@ export default function PropertyPage() {
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [guests, setGuests] = useState(1);
+
+  // Load Google Maps
+  const { isLoaded, loadError } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    libraries: GOOGLE_MAPS_LIBRARIES,
+  });
 
   useEffect(() => {
     async function fetchData() {
@@ -51,6 +61,20 @@ export default function PropertyPage() {
 
   if (loading) return <Typography>Loading property details...</Typography>;
   if (!property) return <Typography>Property not found.</Typography>;
+  if (loadError) return <Typography>Error loading Google Maps.</Typography>;
+
+  // Map container style
+  const mapContainerStyle = {
+    width: "100%",
+    height: "400px",
+    borderRadius: "8px",
+  };
+
+  // Center map on Shoreditch, London (hardcoded, adjust if API provides coordinates)
+  const center = {
+    lat: 51.524,
+    lng: -0.080,
+  };
 
   return (
     <Box sx={{ padding: { xs: "1rem", md: "2rem" }, maxWidth: "1400px", mx: "auto" }}>
@@ -192,13 +216,35 @@ export default function PropertyPage() {
                       {/* Category ratings */}
                       {review.categories?.length > 0 && (
                         <Grid container spacing={1} sx={{ mt: 1 }}>
-                          {review.categories.map((cat, idx) => (
-                            <Grid item key={idx}>
-                              <Chip
-                                label={`${cat.category}: ${cat.rating}/10`}
-                                size="small"
-                                color="secondary"
-                              />
+                          {property.reviews.map((review) => (
+                            <Grid item xs={12} key={review.id}>
+                              <Card>
+                                <CardContent>
+                                  <Typography variant="subtitle1">
+                                    <b>{review.guestName}</b> — {review.date}
+                                  </Typography>
+                                  <Typography variant="body2">
+                                    Overall Rating: ⭐ {review.rating}/10
+                                  </Typography>
+                                  <Typography variant="body2" sx={{ mt: 1 }}>
+                                    {review.review}
+                                  </Typography>
+                                  {/* Category ratings */}
+                                  {review.categories?.length > 0 && (
+                                    <Grid container spacing={1} sx={{ mt: 1 }}>
+                                      {review.categories.map((cat, idx) => (
+                                        <Grid item key={idx}>
+                                          <Chip
+                                            label={`${cat.category}: ${cat.rating}/10`}
+                                            size="small"
+                                            color="secondary"
+                                          />
+                                        </Grid>
+                                      ))}
+                                    </Grid>
+                                  )}
+                                </CardContent>
+                              </Card>
                             </Grid>
                           ))}
                         </Grid>
@@ -290,20 +336,22 @@ export default function PropertyPage() {
       <Typography variant="h5" sx={{ mb: 2 }}>
         Location
       </Typography>
-      <Box
-        sx={{
-          height: 400,
-          backgroundColor: "#f0f0f0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: 2,
-        }}
-      >
-        <Typography variant="body1" color="text.secondary">
-          Map placeholder for {property.location}. (Integrate Google Maps or Leaflet here.)
-        </Typography>
-      </Box>
+      {isLoaded ? (
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
+          center={center}
+          zoom={14}
+          options={{
+            mapTypeControl: false,
+            streetViewControl: false,
+            fullscreenControl: false,
+          }}
+        >
+          <Marker position={center} title={property.listingName} />
+        </GoogleMap>
+      ) : (
+        <Typography>Loading map...</Typography>
+      )}
     </Box>
   );
 }
