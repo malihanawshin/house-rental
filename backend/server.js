@@ -4,7 +4,14 @@ const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
-app.use(cors({ origin: process.env.FRONTEND_URL || "https://flexlivingdeploy.vercel.app" }));
+app.use(
+  cors({
+    origin: [
+      "https://flexlivingdeploy.vercel.app",
+      "http://localhost:3000",
+    ],
+  })
+);
 app.use(express.json());
 
 // In-memory store for mock reviews
@@ -114,15 +121,15 @@ app.post("/api/reviews/:id/approve", (req, res) => {
 // GET /api/properties/:id
 app.get("/api/properties/:id", (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id; // Keep as string for comparison
     const reviews = mockReviews;
 
-    const propertyReview = reviews.find((r) => r.id === id);
+    const propertyReview = reviews.find((r) => r.id.toString() === id);
     if (!propertyReview) {
       return res.status(404).json({ error: "Property not found" });
     }
 
-    const frontendUrl = process.env.FRONTEND_URL || "https://flex-living-reviews-frontend.vercel.app";
+    const frontendUrl = process.env.FRONTEND_URL || "https://flexlivingdeploy.vercel.app";
     const property = {
       id: propertyReview.id,
       listingName: propertyReview.listingName,

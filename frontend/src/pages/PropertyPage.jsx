@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Typography,
   Grid,
@@ -33,8 +33,10 @@ const GOOGLE_MAPS_LIBRARIES = ["places"];
 
 export default function PropertyPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [property, setProperty] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [checkInDate, setCheckInDate] = useState("");
   const [checkOutDate, setCheckOutDate] = useState("");
   const [guests, setGuests] = useState(1);
@@ -48,10 +50,14 @@ export default function PropertyPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        const res = await axios.get(`http://localhost:4000/api/properties/${id}`);
+        const apiUrl = process.env.REACT_APP_API_URL || "https://flexlivingbackend.vercel.app";
+        console.log("Fetching property from:", `${apiUrl}/api/properties/${id}`);
+        const res = await axios.get(`${apiUrl}/api/properties/${id}`);
+        console.log("Fetched property:", res.data);
         setProperty(res.data);
       } catch (err) {
-        console.error("Error fetching property:", err);
+        console.error("Error fetching property:", err.message, err.response?.data);
+        setError(err.response?.data?.error || "Failed to fetch property");
       } finally {
         setLoading(false);
       }
@@ -60,6 +66,7 @@ export default function PropertyPage() {
   }, [id]);
 
   if (loading) return <Typography>Loading property details...</Typography>;
+  if (error) return <Typography color="error">{error}</Typography>;
   if (!property) return <Typography>Property not found.</Typography>;
   if (loadError) return <Typography>Error loading Google Maps.</Typography>;
 
@@ -78,6 +85,11 @@ export default function PropertyPage() {
 
   return (
     <Box sx={{ padding: { xs: "1rem", md: "2rem" }, maxWidth: "1400px", mx: "auto" }}>
+      {/* Back to Dashboard Button */}
+      <Button onClick={() => navigate("/dashboard")} sx={{ mb: 2 }}>
+        Back to Dashboard
+      </Button>
+
       {/* Images */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {property.images?.map((img, idx) => (
@@ -134,11 +146,7 @@ export default function PropertyPage() {
             About This Property
           </Typography>
           <Typography variant="body1" sx={{ mb: 3 }}>
-            This spacious apartment in Old Street is perfect for anyone looking for a
-            comfortable, modern place to stay. The location couldn’t be better – close to
-            all the cool spots in the area, with great transport links. I’ve made sure to
-            provide high-quality amenities, so you’ll feel right at home. Whether you’re
-            here for work or play, it’s an ideal base for your stay.
+            {property.description}
           </Typography>
 
           {/* Amenities List */}
@@ -213,38 +221,15 @@ export default function PropertyPage() {
                       <Typography variant="body2" sx={{ mt: 1 }}>
                         {review.review}
                       </Typography>
-                      {/* Category ratings */}
                       {review.categories?.length > 0 && (
                         <Grid container spacing={1} sx={{ mt: 1 }}>
-                          {property.reviews.map((review) => (
-                            <Grid item xs={12} key={review.id}>
-                              <Card>
-                                <CardContent>
-                                  <Typography variant="subtitle1">
-                                    <b>{review.guestName}</b> — {review.date}
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    Overall Rating: ⭐ {review.rating}/10
-                                  </Typography>
-                                  <Typography variant="body2" sx={{ mt: 1 }}>
-                                    {review.review}
-                                  </Typography>
-                                  {/* Category ratings */}
-                                  {review.categories?.length > 0 && (
-                                    <Grid container spacing={1} sx={{ mt: 1 }}>
-                                      {review.categories.map((cat, idx) => (
-                                        <Grid item key={idx}>
-                                          <Chip
-                                            label={`${cat.category}: ${cat.rating}/10`}
-                                            size="small"
-                                            color="secondary"
-                                          />
-                                        </Grid>
-                                      ))}
-                                    </Grid>
-                                  )}
-                                </CardContent>
-                              </Card>
+                          {review.categories.map((cat, idx) => (
+                            <Grid item key={idx}>
+                              <Chip
+                                label={`${cat.category}: ${cat.rating}/10`}
+                                size="small"
+                                color="secondary"
+                              />
                             </Grid>
                           ))}
                         </Grid>
