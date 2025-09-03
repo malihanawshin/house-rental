@@ -29,6 +29,7 @@ try {
     approved: r.approved ?? false,
     source: "hostaway",
   }));
+  console.log("Loaded mock reviews:", mockReviews.length);
 } catch (err) {
   console.error("Failed to load hostaway.mock.json:", err.message);
 }
@@ -42,36 +43,39 @@ app.get("/api/reviews/hostaway", async (req, res) => {
   try {
     let reviews = [];
 
-    // Try Hostaway API
-    if (ACCOUNT_ID && API_KEY) {
-      const url = `https://api.hostaway.com/v1/reviews?accountId=${ACCOUNT_ID}`;
-      const headers = { Authorization: `Bearer ${API_KEY}` };
-      const response = await axios.get(url, { headers });
-      reviews = response.data.result.map((r) => ({
-        id: r.id,
-        guestName: r.guestName,
-        listingName: r.listingName,
-        rating:
-          r.rating ??
-          (r.reviewCategory?.length > 0
-            ? Math.round(
-                r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
-                  r.reviewCategory.length
-              )
-            : null),
-        review: r.publicReview,
-        date: r.submittedAt,
-        categories: r.reviewCategory || [],
-        approved: r.approved ?? false,
-        source: "hostaway",
-      }));
-    } else {
-      // Use in-memory mock data
-      if (mockReviews.length === 0) {
-        throw new Error("No mock reviews available");
-      }
+    // Try mock data first
+    if (mockReviews.length > 0) {
       reviews = [...mockReviews];
+      return res.json(reviews);
     }
+
+    // Fallback to Hostaway API
+    if (!ACCOUNT_ID || !API_KEY) {
+      throw new Error("Hostaway API credentials missing");
+    }
+
+    const url = `https://api.hostaway.com/v1/reviews?accountId=${ACCOUNT_ID}`;
+    const headers = { Authorization: `Bearer ${API_KEY}` };
+    const response = await axios.get(url, { headers });
+    reviews = response.data.result.map((r) => ({
+      id: r.id,
+      guestName: r.guestName,
+      listingName: r.lis
+System: tingName,
+      rating:
+        r.rating ??
+        (r.reviewCategory?.length > 0
+          ? Math.round(
+              r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
+                r.reviewCategory.length
+            )
+          : null),
+      review: r.publicReview,
+      date: r.submittedAt,
+      categories: r.reviewCategory || [],
+      approved: r.approved ?? false,
+      source: "hostaway",
+    }));
 
     res.json(reviews);
   } catch (err) {
