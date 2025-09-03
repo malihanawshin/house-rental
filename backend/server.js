@@ -11,57 +11,11 @@ app.use(express.json());
 let mockReviews = [];
 try {
   const mockData = require("./data/hostaway.mock.json");
-  mockReviews = (mockData.result || []).map((r) => ({
-    id: r.id,
-    guestName: r.guestName,
-    listingName: r.listingName,
-    rating:
-      r.rating ??
-      (r.reviewCategory?.length > 0
-        ? Math.round(
-            r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
-              r.reviewCategory.length
-          )
-        : null),
-    review: r.publicReview,
-    date: r.submittedAt,
-    categories: r.reviewCategory || [],
-    approved: r.approved ?? false,
-    source: "hostaway",
-  }));
-  console.log("Loaded mock reviews:", mockReviews.length);
-} catch (err) {
-  console.error("Failed to load hostaway.mock.json:", err.message);
-}
-
-// Hostaway credentials
-const ACCOUNT_ID = process.env.HOSTAWAY_ACCOUNT_ID;
-const API_KEY = process.env.HOSTAWAY_API_KEY;
-
-// GET /api/reviews/hostaway
-app.get("/api/reviews/hostaway", async (req, res) => {
-  try {
-    let reviews = [];
-
-    // Try mock data first
-    if (mockReviews.length > 0) {
-      reviews = [...mockReviews];
-      return res.json(reviews);
-    }
-
-    // Fallback to Hostaway API
-    if (!ACCOUNT_ID || !API_KEY) {
-      throw new Error("Hostaway API credentials missing");
-    }
-
-    const url = `https://api.hostaway.com/v1/reviews?accountId=${ACCOUNT_ID}`;
-    const headers = { Authorization: `Bearer ${API_KEY}` };
-    const response = await axios.get(url, { headers });
-    reviews = response.data.result.map((r) => ({
+  if (mockData && Array.isArray(mockData.result)) {
+    mockReviews = mockData.result.map((r) => ({
       id: r.id,
       guestName: r.guestName,
-      listingName: r.lis
-System: tingName,
+      listingName: r.listingName,
       rating:
         r.rating ??
         (r.reviewCategory?.length > 0
@@ -76,6 +30,60 @@ System: tingName,
       approved: r.approved ?? false,
       source: "hostaway",
     }));
+    console.log("Loaded mock reviews:", mockReviews.length);
+  } else {
+    console.error("hostaway.mock.json has invalid structure");
+  }
+} catch (err) {
+  console.error("Failed to load hostaway.mock.json:", err.message);
+}
+
+// Hostaway credentials
+const ACCOUNT_ID = process.env.HOSTAWAY_ACCOUNT_ID;
+const API_KEY = process.env.HOSTAWAY_API_KEY;
+
+// GET /api/reviews/hostaway
+app.get("/api/reviews/hostaway", async (req, res) => {
+  try {
+    // Return mock reviews if available
+    if (mockReviews.length > 0) {
+      return res.json(mockReviews);
+    }
+
+    // Try Hostaway API
+    if (!ACCOUNT_ID || !API_KEY) {
+      throw new Error("Hostaway API credentials missing");
+    }
+
+    const url = `https://api.hostaway.com/v1/reviews?accountId=${ACCOUNT_ID}`;
+    const headers = { Authorization: `Bearer ${API_KEY}` };
+    const response = await axios.get(url, { headers });
+
+    // Handle empty or invalid API response
+    const reviews = Array.isArray(response.data?.result)
+      ? response.data.result.map((r) => ({
+          id: r.id,
+          guestName: r.guestName,
+          listingName: r.listingName,
+          rating:
+            r.rating ??
+            (r.reviewCategory?.length > 0
+              ? Math.round(
+                  r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
+                    r.reviewCategory.length
+                )
+              : null),
+          review: r.publicReview,
+          date: r.submittedAt,
+          categories: r.reviewCategory || [],
+          approved: r.approved ?? false,
+          source: "hostaway",
+        }))
+      : [];
+
+    if (reviews.length === 0) {
+      console.log("Hostaway API returned no reviews (sandbox)");
+    }
 
     res.json(reviews);
   } catch (err) {
