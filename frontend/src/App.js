@@ -5,13 +5,6 @@ import PropertyPage from "./pages/PropertyPage";
 function App() {
   return (
     <Router>
-      <nav style={{ padding: "1rem", background: "#f0f0f0" }}>
-        <Link to="/dashboard" style={{ marginRight: "1rem" }}>
-          Dashboard
-        </Link>
-        {/* <Link to="/property">Property Page</Link> */}
-      </nav>
-
       <Routes>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/property" element={<PropertyPage />} />
