@@ -13,6 +13,7 @@ import {
   CardContent,
   Alert,
   Button,
+  Box,
 } from "@mui/material";
 import {
   LineChart,
@@ -88,17 +89,17 @@ export default function DashboardPage() {
   }, [propertyFilter, categoryFilter, dateFilter, minRatingFilter, maxRatingFilter, reviews]);
 
   useEffect(() => {
-    if (filteredReviews.length === 0) return;
+    if (reviews.length === 0) return;
 
-    const totalReviews = filteredReviews.length;
-    const approvedCount = filteredReviews.filter((r) => r.approved).length;
+    const totalReviews = reviews.length;
+    const approvedCount = reviews.filter((r) => r.approved).length;
     const avgRating = (
-      filteredReviews.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews
+      reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / totalReviews
     ).toFixed(1);
-    const lowRatings = filteredReviews.filter((r) => r.rating < 7).length;
+    const lowRatings = reviews.filter((r) => r.rating < 7).length;
     setOverviewData({ totalReviews, approvedCount, avgRating, lowRatings });
 
-    const groupedByMonth = filteredReviews.reduce((acc, r) => {
+    const groupedByMonth = reviews.reduce((acc, r) => {
       const month = r.date.slice(0, 7);
       if (!acc[month]) acc[month] = { month, total: 0, count: 0 };
       acc[month].total += r.rating || 0;
@@ -112,14 +113,14 @@ export default function DashboardPage() {
 
     const categories = ["cleanliness", "communication", "respect_house_rules"];
     const catData = categories.map((cat) => {
-      const catReviews = filteredReviews.flatMap((r) => r.categories || []).filter((c) => c.category === cat);
+      const catReviews = reviews.flatMap((r) => r.categories || []).filter((c) => c.category === cat);
       const avg = catReviews.length > 0
         ? (catReviews.reduce((sum, c) => sum + c.rating, 0) / catReviews.length).toFixed(1)
         : 0;
       return { category: cat, avgRating: avg };
     });
     setCategoryData(catData);
-  }, [filteredReviews]);
+  }, [reviews]);
 
   const handleApproveToggle = async (id, approved) => {
     try {
