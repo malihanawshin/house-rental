@@ -4,7 +4,7 @@ const axios = require("axios");
 require("dotenv").config();
 
 const app = express();
-app.use(cors({ origin: process.env.FRONTEND_URL || "https://flex-living-reviews-frontend.vercel.app" }));
+app.use(cors({ origin: process.env.FRONTEND_URL || "https://flexlivingdeploy.vercel.app" }));
 app.use(express.json());
 
 // In-memory store for mock reviews
