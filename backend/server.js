@@ -1,61 +1,46 @@
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs");
-const path = require("path");
 const axios = require("axios");
-require("dotenv").config(); // Load .env variables
+require("dotenv").config();
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_URL || "https://flex-living-reviews-frontend.vercel.app" }));
 app.use(express.json());
 
-// Path to mock reviews
-const DATA_FILE = path.join(__dirname, "data", "hostaway.mock.json");
+// In-memory store for mock reviews
+let mockReviews = require("./hostaway.mock.json").result.map((r) => ({
+  id: r.id,
+  guestName: r.guestName,
+  listingName: r.listingName,
+  rating:
+    r.rating ??
+    (r.reviewCategory.length > 0
+      ? Math.round(
+          r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
+            r.reviewCategory.length
+        )
+      : null),
+  review: r.publicReview,
+  date: r.submittedAt,
+  categories: r.reviewCategory,
+  approved: r.approved ?? false,
+  source: "hostaway",
+}));
 
-// Hostaway sandbox credentials from .env
+// Hostaway credentials
 const ACCOUNT_ID = process.env.HOSTAWAY_ACCOUNT_ID;
 const API_KEY = process.env.HOSTAWAY_API_KEY;
 
-// Load reviews from JSON
-function loadReviews() {
-  const data = JSON.parse(fs.readFileSync(DATA_FILE));
-  return data.result.map((r) => ({
-    ...r,
-    approved: r.approved ?? false,
-    rating:
-      r.rating ??
-      (r.reviewCategory.length > 0
-        ? Math.round(
-            r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
-              r.reviewCategory.length
-          )
-        : null),
-    review: r.publicReview,
-    date: r.submittedAt,
-  }));
-}
-
-// Save reviews back to JSON
-function saveReviews(reviews) {
-  fs.writeFileSync(
-    DATA_FILE,
-    JSON.stringify({ status: "success", result: reviews }, null, 2)
-  );
-}
-
-// ------------------------ ROUTES ------------------------
-
-// 1️⃣ GET /api/reviews/hostaway
+// GET /api/reviews/hostaway
 app.get("/api/reviews/hostaway", async (req, res) => {
   try {
-    let reviews;
+    let reviews = [];
 
-    // Try fetching from Hostaway sandbox API
-    if (API_KEY && ACCOUNT_ID) {
+    // Try Hostaway API
+    if (ACCOUNT_ID && API_KEY) {
       const url = `https://api.hostaway.com/v1/reviews?accountId=${ACCOUNT_ID}`;
       const headers = { Authorization: `Bearer ${API_KEY}` };
       const response = await axios.get(url, { headers });
-
       reviews = response.data.result.map((r) => ({
         id: r.id,
         guestName: r.guestName,
@@ -71,83 +56,46 @@ app.get("/api/reviews/hostaway", async (req, res) => {
         review: r.publicReview,
         date: r.submittedAt,
         categories: r.reviewCategory,
-        approved: false,
+        approved: r.approved ?? false,
+        source: "hostaway",
       }));
     } else {
-      // Fallback to local mock JSON
-      const data = JSON.parse(fs.readFileSync(DATA_FILE));
-      reviews = data.result.map((r) => ({
-        id: r.id,
-        guestName: r.guestName,
-        listingName: r.listingName,
-        rating:
-          r.rating ??
-          (r.reviewCategory.length > 0
-            ? Math.round(
-                r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
-                  r.reviewCategory.length
-              )
-            : null),
-        review: r.publicReview,
-        date: r.submittedAt,
-        categories: r.reviewCategory,
-        approved: r.approved ?? false,
-      }));
+      // Use in-memory mock data
+      reviews = [...mockReviews];
     }
 
     res.json(reviews);
   } catch (err) {
-    console.error("Failed to fetch Hostaway reviews, using mock JSON:", err.message);
-
-    // Fallback to local JSON if sandbox fails
-    const data = JSON.parse(fs.readFileSync(DATA_FILE));
-    const reviews = data.result.map((r) => ({
-      id: r.id,
-      guestName: r.guestName,
-      listingName: r.listingName,
-      rating:
-        r.rating ??
-        (r.reviewCategory.length > 0
-          ? Math.round(
-              r.reviewCategory.reduce((acc, c) => acc + c.rating, 0) /
-                r.reviewCategory.length
-            )
-          : null),
-      review: r.publicReview,
-      date: r.submittedAt,
-      categories: r.reviewCategory,
-      approved: r.approved ?? false,
-    }));
-
-    res.json(reviews);
+    console.error("Error fetching reviews:", err.message);
+    res.status(500).json({ error: "Failed to fetch reviews" });
   }
 });
 
-// 2️⃣ Toggle review approval
+// POST /api/reviews/:id/approve
 app.post("/api/reviews/:id/approve", (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = req.params.id; // Handle string or integer IDs
   const { approved } = req.body;
 
-  const reviews = loadReviews();
-  const review = reviews.find((r) => r.id === id);
-  if (!review) return res.status(404).json({ error: "Review not found" });
+  const reviewIndex = mockReviews.findIndex((r) => r.id.toString() === id);
+  if (reviewIndex === -1) {
+    return res.status(404).json({ error: "Review not found" });
+  }
 
-  review.approved = approved;
-  saveReviews(reviews);
-
+  mockReviews[reviewIndex].approved = approved;
   res.json({ success: true, id, approved });
 });
 
-// 3️⃣ GET /api/properties/:id
+// GET /api/properties/:id
 app.get("/api/properties/:id", (req, res) => {
   const id = parseInt(req.params.id);
-  const reviews = loadReviews();
+  const reviews = mockReviews;
 
   const propertyReview = reviews.find((r) => r.id === id);
-  if (!propertyReview)
+  if (!propertyReview) {
     return res.status(404).json({ error: "Property not found" });
+  }
 
-  // Hardcoded property info + frontend/public/images
+  const frontendUrl = process.env.FRONTEND_URL || "https://flex-living-reviews-frontend.vercel.app";
   const property = {
     id: propertyReview.id,
     listingName: propertyReview.listingName,
@@ -155,10 +103,10 @@ app.get("/api/properties/:id", (req, res) => {
     description:
       "A modern 2-bedroom apartment in Shoreditch, walking distance to Liverpool Street station. Perfect for families or business stays.",
     images: [
-      "http://localhost:3000/images/living.jpeg",
-      "http://localhost:3000/images/bedroom.jpeg",
-      "http://localhost:3000/images/kitchen.jpeg",
-      "http://localhost:3000/images/bathroom.jpeg",
+      `${frontendUrl}/images/living.jpeg`,
+      `${frontendUrl}/images/bedroom.jpeg`,
+      `${frontendUrl}/images/kitchen.jpeg`,
+      `${frontendUrl}/images/bathroom.jpeg`,
     ],
     amenities: ["WiFi", "Kitchen", "Washing Machine", "Balcony", "24/7 Check-in"],
     bedrooms: 2,
@@ -172,9 +120,4 @@ app.get("/api/properties/:id", (req, res) => {
   res.json(property);
 });
 
-// -------------------------------------------------------
-
-const PORT = 4000;
-app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
-});
+module.exports = app;
