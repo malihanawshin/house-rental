@@ -1,18 +1,19 @@
 {
-  "name": "backend",
+  "name": "flex-living-reviews-backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "Backend for Flex Living Reviews Dashboard",
   "dependencies": {
-    "axios": "^1.11.0",
+    "axios": "^1.7.7",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0"
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1"
   }
 }
