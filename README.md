@@ -1,4 +1,4 @@
-# Flex Living Reviews Dashboard
+# Flex Living
 
 A full-stack web application for managing and analyzing property reviews from **Hostaway**, with an interactive dashboard to view, filter, and approve reviews, visualize performance trends, and access property details.
 
@@ -145,12 +145,4 @@ Project name: `flexlivingdeploy`
 5. Check DevTools Console/Network for errors.
 
 **Production**
-
-1. Visit: [https://flexlivingdeploy.vercel.app/dashboard](https://flexlivingdeploy.vercel.app/dashboard)
-2. Verify filters, charts, and property pages.
-3. Debug with:
-
-   ```bash
-   vercel logs flexlivingdeploy.vercel.app
-   vercel logs flex-living-reviews-backend.vercel.app
-   ```
+Visit: [https://flexlivingdeploy.vercel.app/dashboard](https://flexlivingdeploy.vercel.app/dashboard)
