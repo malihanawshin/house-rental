@@ -142,11 +142,11 @@ export default function DashboardPage() {
 
   const columns = [
     { field: "guestName", headerName: "Guest", flex: 1, sortable: true },
-    { field: "listingName", headerName: "Property", flex: 2, sortable: true },
+    { field: "listingName", headerName: "Property", flex: 1.5, sortable: true },
     {
       field: "rating",
       headerName: "Rating",
-      flex: 1,
+      flex: 0.5,
       sortable: true,
       renderCell: (params) => (
         <Typography color={params.value < 7 ? "error" : "inherit"}>
@@ -159,7 +159,7 @@ export default function DashboardPage() {
     {
       field: "approved",
       headerName: "Approved",
-      flex: 1,
+      flex: 0.5,
       sortable: true,
       renderCell: (params) => (
         <Switch
@@ -190,7 +190,7 @@ export default function DashboardPage() {
   if (error) return <Typography color="error">{error}</Typography>;
 
   return (
-    <Box sx={{ padding: "2rem", width: "100%", maxWidth: "1400px", mx: "auto" }}>
+    <Box sx={{ padding: "4rem", backgroundColor: "#f8f8ea9e", width: "90%", maxWidth: "1400px", mx: "auto" }}>
       <Typography variant="h4" sx={{ mb: 2 }}>
         Manager Dashboard
       </Typography>
@@ -316,6 +316,7 @@ export default function DashboardPage() {
         autoHeight
         getRowId={(row) => row.id}
         sortingOrder={["asc", "desc"]}
+        getRowHeight={() => "auto"}   // auto-adjust row height
         initialState={{
           sorting: {
             sortModel: [{ field: "rating", sort: "desc" }],

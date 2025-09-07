@@ -135,12 +135,13 @@ app.get("/api/properties/:id", (req, res) => {
       listingName: propertyReview.listingName,
       location: "London, UK",
       description:
-        "A modern 2-bedroom apartment in Shoreditch, walking distance to Liverpool Street station. Perfect for families or business stays.",
+        "A modern 2-bedroom apartment in Shoreditch, walking distance to Liverpool Street station. Perfect for families or business stays. The location couldn’t be better – close to all the cool spots in the area, with great transport links. I’ve made sure to provide high-quality amenities, so you’ll feel right at home. Whether you’re here for work or play, it’s an ideal base for your stay. This apartment has 2 comfortable bedrooms, each with a king bed, perfect for a good night’s sleep. The bathroom is modern, and the kitchen is fully equipped with top-notch appliances, ready for you to cook up anything you like. I’ve made sure all duvets and pillows are hypoallergenic, and the bed linen is 100% cotton for that extra comfort. The living room is spacious and there’s also an air mattress available if you need to accommodate an extra guest. Altogether, up to 5 people can stay here comfortably.",
       images: [
         `${frontendUrl}/images/living.jpeg`,
         `${frontendUrl}/images/bedroom.jpeg`,
         `${frontendUrl}/images/kitchen.jpeg`,
         `${frontendUrl}/images/bathroom.jpeg`,
+        `${frontendUrl}/images/bedroom2.jpeg`,
       ],
       amenities: ["WiFi", "Kitchen", "Washing Machine", "Balcony", "24/7 Check-in"],
       bedrooms: 2,
